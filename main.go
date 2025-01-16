@@ -33,18 +33,20 @@ Example from /e
 */
 
 type YoulessResponse struct {
-	Time         int     `json:"tm"`
-	Power        int     `json:"pwr"`
-	Netto        float64 `json:"net"`
-	TimeS0       int     `json:"ts0"`
-	CounterS0    float64 `json:"cs0"`
-	PowerS0      int     `json:"ps0"`
-	P1           float64 `json:"p1"`
-	P2           float64 `json:"p2"`
-	Gas          float64 `json:"gas"`
-	GasTimeStamp int     `json:"gts"`
-	Wtr          float64 `json:"wtr"`
-	Wts          int     `json:"wts"`
+	Time           int     `json:"tm"`
+	Power          int     `json:"pwr"`
+	Netto          float64 `json:"net"`
+	TimeS0         int     `json:"ts0"`
+	CounterS0      float64 `json:"cs0"`
+	PowerS0        int     `json:"ps0"`
+	P1             float64 `json:"p1"`
+	P2             float64 `json:"p2"`
+	N1             float64 `json:"n1"`
+	N2             float64 `json:"n2"`
+	Gas            float64 `json:"gas"`
+	GasTimeStamp   int     `json:"gts"`
+	Water          float64 `json:"wtr"`
+	WaterTimeStamp int     `json:"wts"`
 }
 
 func metricHandler(w http.ResponseWriter, req *http.Request) {
@@ -70,10 +72,12 @@ func metricHandler(w http.ResponseWriter, req *http.Request) {
 	metricData += fmt.Sprintf("youless_powers0 %d\n", dat.PowerS0)
 	metricData += fmt.Sprintf("youless_p1 %f\n", dat.P1)
 	metricData += fmt.Sprintf("youless_p2 %f\n", dat.P2)
+	metricData += fmt.Sprintf("youless_n1 %f\n", dat.N1)
+	metricData += fmt.Sprintf("youless_n2 %f\n", dat.N2)
 	metricData += fmt.Sprintf("youless_gas %f\n", dat.Gas)
 	metricData += fmt.Sprintf("youless_gas_timestamp %d\n", dat.GasTimeStamp)
-	metricData += fmt.Sprintf("youless_wtr %f\n", dat.Wtr)
-	metricData += fmt.Sprintf("youless_wts %d\n", dat.Wts)
+	metricData += fmt.Sprintf("youless_water %f\n", dat.Water)
+	metricData += fmt.Sprintf("youless_water_timestamp %d\n", dat.WaterTimeStamp)
 
 	io.WriteString(w, metricData)
 }
