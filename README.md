@@ -1,90 +1,53 @@
-- http://wiki.td-er.nl/index.php?title=YouLess
+# Youless Prometheus Exporter
+
+You can run this to export metrics from a YouLess device to Prometheus and then create graphs in Grafana.
+
+Tested with:
+- YouLess LS120, Firmware 1.6.3-EL
+
+## Usage
 
 ```
-$ curl -s 'http://192.168.1.20/V?h=1&f=j' | jq .
-{
-  "un": "Watt",
-  "tm": "2025-01-07T13:12:00",
-  "dt": 60,
-  "val": [
-    " 1770",
-    " 1740",
-    " 1410",
-    " 1410",
-    " 1410",
-    " 1410",
-    " 1410",
-    " 1410",
-    " 1410",
-    " 1410",
-    " 1410",
-    " 1410",
-    " 1410",
-    " 1410",
-    " 1410",
-    "   78",
-    "   78",
-    "   78",
-    "   78",
-    "   78",
-    "  150",
-    "  156",
-    "  168",
-    "  192",
-    "  360",
-    "  240",
-    "  210",
-    "  204",
-    "  180",
-    "  222",
-    null
-  ]
-}
+Usage of ./youless-go:
+  -listen string
+    	listen address (default ":8002")
+  -url string
+    	URL base for YouLess (default "http://192.168.1.20")
 ```
 
-- `/V?h=1..2`
-- `/V?w=1..3`
-- `/V?d=1..7`
-- `/V?m=1..12`
+## Metrics
 
+These are the metrics, numbers all set to 0 in the example for privacy reasons.
 
-For `/f`:
 ```
-{
-  "tr": 2, <- Tarief
-  "pa": 0,
-  "pp": 0,
-  "pts": 0,
-  "i1": 8.000, <- Stroom 8A
-  "i2": 0.000,
-  "i3": 0.000,
-  "v1": 233.000, <- Voltage
-  "v2": 0.000,
-  "v3": 0.000,
-  "l1": 1908, <- Power
-  "l2": 0,
-  "l3": 0
-}
+$ curl -s http://127.0.0.1:8002/metrics
+youless_time 0
+youless_power 0
+youless_netto 0.0
+youless_times0 0
+youless_total 0.0
+youless_powers0 0
+youless_p1 0.0
+youless_p2 0.0
+youless_n1 0.0
+youless_n2 0.0
+youless_gas 0.0
+youless_gas_timestamp 0
+youless_water 0.0
+youless_water_timestamp 0
+youless_tarif 0
+youless_current1 0.0
+youless_current2 0.0
+youless_current3 0.0
+youless_voltage1 0.0
+youless_voltage2 0.0
+youless_voltage3 0.0
+youless_power1 0
+youless_power2 0
+youless_power3 0
 ```
 
-For `/e`:
-```
-[
-  {
-    "tm": 1737033089, <- time
-    "net": 7692.804, <- netto 
-    "pwr": 1874, <- power
-    "ts0": 1737030600, <- time stamp s0
-    "cs0": 0.000, <- counter s0
-    "ps0": 0, <- power s0
-    "p1": 6452.689, <- Usage 1
-    "p2": 6995.977, <- Usage 2
-    "n1": 1855.186, <- Production 1
-    "n2": 3900.676, <- Production 2
-    "gas": 4386.952, <- Gas
-    "gts": 2501161410, <- Gas Time Stamp
-    "wtr": 0.000, <- Water
-    "wts": 0 <- Water Time Stamp
-  }
-]
-```
+## Resources
+
+- https://youless.nl
+- https://wiki.td-er.nl/index.php?title=YouLess

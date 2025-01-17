@@ -2,37 +2,18 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"log"
+	"log/slog"
 	"net/http"
 )
 
-/*
+var baseUrl string
 
-Example from /e
-
-[
-  {
-    "tm": 1737031587,
-    "net": 7692.057,
-    "pwr": 1710,
-    "ts0": 1737030600,
-    "cs0": 0.000,
-    "ps0": 0,
-    "p1": 6452.689,
-    "p2": 6995.230,
-    "n1": 1855.186,
-    "n2": 3900.676,
-    "gas": 4386.952,
-    "gts": 2501161345,
-    "wtr": 0.000,
-    "wts": 0
-  }
-]
-*/
-
-type YoulessResponse struct {
+// YoulessResponseE is the response of the /e endpoint
+type YoulessResponseE struct {
 	Time           int     `json:"tm"`
 	Power          int     `json:"pwr"`
 	Netto          float64 `json:"net"`
@@ -49,18 +30,37 @@ type YoulessResponse struct {
 	WaterTimeStamp int     `json:"wts"`
 }
 
-func metricHandler(w http.ResponseWriter, req *http.Request) {
-	url := "http://192.168.1.20/e"
+// YoulessResponseF is the response of the /f endpoint
+type YoulessResponseF struct {
+	Tarif int `json:"tr"`
+	// int      `json:"pa"`
+	// int      `json:"pp"`
+	// int      `json:"pts"`
+	Current1 float64 `json:"i1"`
+	Current2 float64 `json:"i2"`
+	Current3 float64 `json:"i3"`
+	Voltage1 float64 `json:"v1"`
+	Voltage2 float64 `json:"v2"`
+	Voltage3 float64 `json:"v3"`
+	Power1   int     `json:"l1"`
+	Power2   int     `json:"l2"`
+	Power3   int     `json:"l3"`
+}
+
+func getE(baseUrl string) (string, error) {
+	url := baseUrl + "/e"
+	slog.Info("getE", "url", url)
+
 	resp, err := http.Get(url)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 	defer resp.Body.Close()
 
-	var yr []YoulessResponse
+	var yr []YoulessResponseE
 	err = json.NewDecoder(resp.Body).Decode(&yr)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 	dat := yr[0]
 
@@ -78,11 +78,56 @@ func metricHandler(w http.ResponseWriter, req *http.Request) {
 	metricData += fmt.Sprintf("youless_gas_timestamp %d\n", dat.GasTimeStamp)
 	metricData += fmt.Sprintf("youless_water %f\n", dat.Water)
 	metricData += fmt.Sprintf("youless_water_timestamp %d\n", dat.WaterTimeStamp)
+	return metricData, nil
+}
 
+func getF(baseUrl string) (string, error) {
+	url := baseUrl + "/f"
+	slog.Info("getF", "url", url)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	var dat YoulessResponseF
+	err = json.NewDecoder(resp.Body).Decode(&dat)
+	if err != nil {
+		return "", err
+	}
+
+	metricData := fmt.Sprintf("youless_tarif %d\n", dat.Tarif)
+	metricData += fmt.Sprintf("youless_current1 %f\n", dat.Current1)
+	metricData += fmt.Sprintf("youless_current2 %f\n", dat.Current2)
+	metricData += fmt.Sprintf("youless_current3 %f\n", dat.Current3)
+	metricData += fmt.Sprintf("youless_voltage1 %f\n", dat.Voltage1)
+	metricData += fmt.Sprintf("youless_voltage2 %f\n", dat.Voltage2)
+	metricData += fmt.Sprintf("youless_voltage3 %f\n", dat.Voltage3)
+	metricData += fmt.Sprintf("youless_power1 %d\n", dat.Power1)
+	metricData += fmt.Sprintf("youless_power2 %d\n", dat.Power2)
+	metricData += fmt.Sprintf("youless_power3 %d\n", dat.Power3)
+	return metricData, nil
+}
+
+func metricHandler(w http.ResponseWriter, req *http.Request) {
+	metricData, err := getE(baseUrl)
+	if err != nil {
+		panic(err)
+	}
+	io.WriteString(w, metricData)
+
+	metricData, err = getF(baseUrl)
+	if err != nil {
+		panic(err)
+	}
 	io.WriteString(w, metricData)
 }
 
 func main() {
+	flag.StringVar(&baseUrl, "url", "http://192.168.1.20", "URL base for YouLess")
+	listen := flag.String("listen", ":8002", "listen address")
+	flag.Parse()
 	http.HandleFunc("/metrics", metricHandler)
-	log.Fatal(http.ListenAndServe(":8002", nil))
+	log.Fatal(http.ListenAndServe(*listen, nil))
 }
